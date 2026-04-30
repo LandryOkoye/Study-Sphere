@@ -3,7 +3,16 @@
 import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-
+import { AppHeader } from "@/components/layout/AppHeader";
+import { SkeletonLoader } from "@/components/ui/skeleton-loader";
+import { TOCExplorer } from "@/components/ide/TOCExplorer";
+import { AIChat } from "@/components/ide/AIChat";
+import { DocumentUpload } from "@/components/ide/DocumentUpload";
+import { SavedSections } from "@/components/ide/SavedSections";
+import { Button } from "@/components/ui/button";
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
+import { useCurriculum } from "@/context/CurriculumContext";
+import { MarkdownRenderer } from "@/components/ide/MarkdownRenderer";
 
 function IDEContent() {
   const searchParams = useSearchParams();

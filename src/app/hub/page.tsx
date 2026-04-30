@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
-// import { AppHeader } from "@/components/layout/AppHeader";
+import { AppHeader } from "@/components/layout/AppHeader";
 import { BentoBox, BentoGrid } from "@/components/ui/bento-box";
 import { BookOpen, Clock, ChevronRight, GraduationCap, Microscope, Upload, FileText, Bot } from "lucide-react";
-// import { Button } from "@/components/ui/button";
-// import { useCurriculum } from "@/context/CurriculumContext";
+import { Button } from "@/components/ui/button";
+import { useCurriculum } from "@/context/CurriculumContext";
 
 type LearningItem = {
   id: string;
