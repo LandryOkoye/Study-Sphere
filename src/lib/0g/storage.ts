@@ -7,14 +7,6 @@ import * as path from "path";
 const MAX_UPLOAD_RETRIES = 3;
 const RETRY_BASE_DELAY_MS = 3000;
 
-/**
- * Upload a file from a local path to 0G Storage.
- * Returns the root hash (the only way to retrieve the file later).
- *
- * Uses `skipTx: true` so the SDK will check if the file already exists
- * on-chain before submitting a new transaction (avoids contract reverts
- * for duplicate uploads).
- */
 export async function uploadFile(filePath: string): Promise<{
   rootHash: string;
   tx: string | null;
@@ -34,8 +26,6 @@ export async function uploadFile(filePath: string): Promise<{
     const rootHash = tree!.rootHash() as string;
     console.log("[0G Storage] Root hash:", rootHash);
 
-    // skipTx: true  → SDK checks for existing on-chain entry first, only
-    //                  submits a new transaction when the file is truly new.
     const uploadOpts = {
       tags: "0x" as `0x${string}`,
       finalityRequired: true,
