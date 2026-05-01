@@ -19,16 +19,10 @@ export type ChatMessage = {
 /** Maximum number of fetch attempts before giving up. */
 const MAX_RETRIES = 3;
 
-/** Delay (in milliseconds) between retry attempts. */
 const RETRY_DELAY_MS = 1000;
 
-/** Per-request timeout (in milliseconds) before aborting. */
 const REQUEST_TIMEOUT_MS = 30_000;
 
-/**
- * User-friendly error message shown when all retry attempts are exhausted.
- * This avoids exposing raw network errors to the end user.
- */
 const FRIENDLY_OFFLINE_MSG =
   "Our AI assistant is temporarily unavailable. Please try again in a moment.";
 
