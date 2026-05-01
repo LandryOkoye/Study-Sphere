@@ -103,7 +103,17 @@ export function Web3AuthContextProvider({ children }: { children: ReactNode }) {
     }
   }, [connectTo, isInitialized, isConnected, web3authDisconnect]);
 
-  //TODO: Implement proper disconnect logic that also clears any cached sessions if needed
+    const disconnect = useCallback(async () => {
+    try {
+      await web3authDisconnect();
+      setAddress(null);
+      setError(null);
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Failed to disconnect";
+      setError(message);
+    }
+  }, [web3authDisconnect]);
 
   // Build a clean user info object only when actually connected
   const parsedUserInfo: Web3AuthUser | null =

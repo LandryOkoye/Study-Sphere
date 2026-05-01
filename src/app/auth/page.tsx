@@ -6,7 +6,8 @@ import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { Wallet, ArrowRight, ShieldCheck, Hexagon, AlertCircle } from "lucide-react";
-// TODO: Replace with actual Web3Auth context and wallet hooks
+import { useWallet } from "@/context/WalletContext";
+import { useWeb3AuthContext } from "@/context/Web3AuthContext";
 
 export default function AuthPage() {
   const router = useRouter();
