@@ -9,6 +9,7 @@ import { CHAIN_NAMESPACES } from "@web3auth/base";
 
 // Read from your existing env — do NOT change the key name
 const clientId = process.env.NEXT_PUBLIC_WEB3AUTH_CLIENT_ID || "";
+export const isWeb3AuthConfigured = clientId.trim().length > 0;
 
 const queryClient = new QueryClient();
 
@@ -59,6 +60,10 @@ export default function Web3AuthProviderSetup({
 }: {
   children: React.ReactNode;
 }) {
+  if (!isWeb3AuthConfigured) {
+    return <>{children}</>;
+  }
+
   return (
     <Web3AuthProvider config={web3AuthContextConfig}>
       <QueryClientProvider client={queryClient}>

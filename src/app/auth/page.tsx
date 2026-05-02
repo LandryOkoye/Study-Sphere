@@ -71,6 +71,7 @@ export default function AuthPage() {
 
   const isConnecting = isWalletConnecting || isWeb3AuthConnecting;
   const error = walletError || web3AuthError;
+  const isGoogleAuthAvailable = isWeb3AuthInitialized || !web3AuthError?.includes("NEXT_PUBLIC_WEB3AUTH_CLIENT_ID");
 
   return (
     <div className="min-h-screen bg-obsidian flex flex-col font-sans relative overflow-hidden selection:bg-charcoal selection:text-foreground">
@@ -128,7 +129,7 @@ export default function AuthPage() {
             {/* Google Option — Primary */}
             <Button
               variant="outline"
-              disabled={isConnecting || !isWeb3AuthInitialized}
+              disabled={isConnecting || !isGoogleAuthAvailable}
               className="w-full justify-center h-14 gap-3 bg-white hover:bg-zinc-100 text-black border-transparent transition-colors mt-4 text-sm sm:text-base"
               onClick={handleGoogleLogin}
             >
@@ -158,8 +159,10 @@ export default function AuthPage() {
                 <span className="font-semibold">
                   {isWeb3AuthConnecting
                     ? "Connecting..."
-                    : !isWeb3AuthInitialized
-                      ? "Initializing..."
+                    : !isGoogleAuthAvailable
+                      ? "Google Sign-In Unavailable"
+                      : !isWeb3AuthInitialized
+                        ? "Initializing..."
                       : "Sign in with Google"}
                 </span>
               </>

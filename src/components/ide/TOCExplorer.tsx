@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { ChevronRight, File, FolderOpen, CheckCircle2 } from "lucide-react";
-//TODO  import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 import { useCurriculum, TOCNode } from "@/context/CurriculumContext";
 

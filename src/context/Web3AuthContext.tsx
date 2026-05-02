@@ -15,6 +15,7 @@ import {
   useWeb3AuthUser,
 } from "@web3auth/modal/react";
 import { WALLET_CONNECTORS } from "@web3auth/modal";
+import { isWeb3AuthConfigured } from "./Web3AuthProviderSetup";
 
 interface Web3AuthUser {
   email?: string;
@@ -33,12 +34,36 @@ interface Web3AuthState {
   error: string | null;
 }
 
+const DISABLED_ERROR =
+  "Google sign-in is unavailable because NEXT_PUBLIC_WEB3AUTH_CLIENT_ID is not configured.";
+
 const Web3AuthCtx = createContext<Web3AuthState | undefined>(undefined);
 
-export function Web3AuthContextProvider({ children }: { children: ReactNode }) {
+function DisabledWeb3AuthContextProvider({ children }: { children: ReactNode }) {
+  const connectWithGoogle = useCallback(async () => false, []);
+  const disconnect = useCallback(async () => {}, []);
+
+  return (
+    <Web3AuthCtx.Provider
+      value={{
+        isConnected: false,
+        isConnecting: false,
+        isInitialized: false,
+        userInfo: null,
+        address: null,
+        connectWithGoogle,
+        disconnect,
+        error: DISABLED_ERROR,
+      }}
+    >
+      {children}
+    </Web3AuthCtx.Provider>
+  );
+}
+
+function EnabledWeb3AuthContextProvider({ children }: { children: ReactNode }) {
   const { isConnected, provider, isInitialized } = useWeb3Auth();
   const { userInfo } = useWeb3AuthUser();
-
   const { connectTo } = useWeb3AuthConnect();
   const { disconnect: web3authDisconnect } = useWeb3AuthDisconnect();
 
@@ -46,7 +71,6 @@ export function Web3AuthContextProvider({ children }: { children: ReactNode }) {
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch the wallet address from the provider once connected
   useEffect(() => {
     const fetchAddress = async () => {
       if (isConnected && provider) {
@@ -56,20 +80,21 @@ export function Web3AuthContextProvider({ children }: { children: ReactNode }) {
           });
           if (accounts && accounts.length > 0) {
             setAddress(accounts[0] ?? null);
+            return;
           }
         } catch {
-          setAddress(null);
+          // ignore and fall through to null state
         }
-      } else {
-        setAddress(null);
       }
+      setAddress(null);
     };
+
     fetchAddress();
   }, [isConnected, provider]);
 
   const connectWithGoogle = useCallback(async (): Promise<boolean> => {
     if (!isInitialized) {
-      setError("Authentication SDK is still initializing — please wait a moment and try again.");
+      setError("Authentication SDK is still initializing. Please wait a moment and try again.");
       return false;
     }
 
@@ -77,10 +102,10 @@ export function Web3AuthContextProvider({ children }: { children: ReactNode }) {
     setIsConnecting(true);
 
     try {
-      // Always log out any cached session first so the Google account picker
-      // popup is shown every time, regardless of prior session state.
       if (isConnected) {
-        try { await web3authDisconnect(); } catch { /* ignore if already logged out */ }
+        try {
+          await web3authDisconnect();
+        } catch {}
       }
 
       await connectTo(WALLET_CONNECTORS.AUTH, {
@@ -101,28 +126,26 @@ export function Web3AuthContextProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsConnecting(false);
     }
-  }, [connectTo, isInitialized, isConnected, web3authDisconnect]);
+  }, [connectTo, isConnected, isInitialized, web3authDisconnect]);
 
-    const disconnect = useCallback(async () => {
+  const disconnect = useCallback(async () => {
     try {
       await web3authDisconnect();
       setAddress(null);
       setError(null);
     } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : "Failed to disconnect";
+      const message = err instanceof Error ? err.message : "Failed to disconnect";
       setError(message);
     }
   }, [web3authDisconnect]);
 
-  // Build a clean user info object only when actually connected
   const parsedUserInfo: Web3AuthUser | null =
     isConnected && userInfo
       ? {
-        email: userInfo.email ?? undefined,
-        name: userInfo.name ?? undefined,
-        profileImage: userInfo.profileImage ?? undefined,
-      }
+          email: userInfo.email ?? undefined,
+          name: userInfo.name ?? undefined,
+          profileImage: userInfo.profileImage ?? undefined,
+        }
       : null;
 
   return (
@@ -143,11 +166,18 @@ export function Web3AuthContextProvider({ children }: { children: ReactNode }) {
   );
 }
 
+export function Web3AuthContextProvider({ children }: { children: ReactNode }) {
+  if (!isWeb3AuthConfigured) {
+    return <DisabledWeb3AuthContextProvider>{children}</DisabledWeb3AuthContextProvider>;
+  }
+
+  return <EnabledWeb3AuthContextProvider>{children}</EnabledWeb3AuthContextProvider>;
+}
+
 export function useWeb3AuthContext() {
   const ctx = useContext(Web3AuthCtx);
-  if (!ctx)
-    throw new Error(
-      "useWeb3AuthContext must be used inside Web3AuthContextProvider"
-    );
+  if (!ctx) {
+    throw new Error("useWeb3AuthContext must be used inside Web3AuthContextProvider");
+  }
   return ctx;
 }

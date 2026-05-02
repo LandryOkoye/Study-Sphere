@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { MarkdownRenderer } from "./MarkdownRenderer";
 import { UploadCloud, FileText, SendHorizontal, TerminalSquare, AlertCircle, Check } from "lucide-react";
-// TODO  import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { useWallet } from "@/context/WalletContext";
 
 type Message = {

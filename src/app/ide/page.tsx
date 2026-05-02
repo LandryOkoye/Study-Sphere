@@ -3,6 +3,7 @@
 import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { Bot } from "lucide-react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { SkeletonLoader } from "@/components/ui/skeleton-loader";
 import { TOCExplorer } from "@/components/ide/TOCExplorer";
@@ -13,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { useCurriculum } from "@/context/CurriculumContext";
 import { MarkdownRenderer } from "@/components/ide/MarkdownRenderer";
+
 
 function IDEContent() {
   const searchParams = useSearchParams();
@@ -52,7 +54,7 @@ function IDEContent() {
 
   const isRegularMode = mode === "research" || !subjectId;
 
-  const handleTopicSelect = async (topicId: string, title: string) => {
+  const handleTopicSelect = async (_topicId: string, title: string) => {
     setTopicLoading(true);
     setCurrentContent(null);
     setLoadError(null);
@@ -128,13 +130,21 @@ function IDEContent() {
             ) : (
               <main className="flex flex-col h-full overflow-hidden bg-card relative">
                 <div className="h-10 border-b border-charcoal/50 flex items-center px-4 bg-muted/50 text-xs font-mono text-foreground/40 tracking-wider justify-between">
-                  <span>root / {subjectName.toLowerCase()} / content.md</span>
+                  <div className="flex items-center gap-3">
+                    <span>root / {subjectName.toLowerCase()} / content.md</span>
+                  </div>
                   <div className="flex items-center gap-3">
                     {latency && (
                       <span className="text-accent-green">
                         ({latency}ms)
                       </span>
                     )}
+                    <Link href={`/agent?subject=${subjectId}`}>
+                      <Button size="sm" variant="outline" className="h-8 text-[10px] bg-accent-blue/10 text-accent-blue hover:bg-accent-blue/20 border-accent-blue/20 py-0 px-2 rounded-sm font-sans uppercase tracking-wider flex items-center gap-1.5">
+                        <Bot className="w-3 h-3" />
+                        Study Coach
+                      </Button>
+                    </Link>
                     <Link href={`/library?subject=${subjectId}`}>
                       <Button size="sm" variant="outline" className="h-8 w-30 text-[10px] bg-accent-blue/10 text-accent-blue hover:bg-accent-blue/20 border-accent-blue/20 py-0 px-2 rounded-sm font-sans uppercase tracking-wider">
                         Library
@@ -147,7 +157,7 @@ function IDEContent() {
                   {!topicLoading && !currentContent && !loadError && (
                     <div className="h-full flex flex-col items-center justify-center text-foreground/30">
                       <p className="font-mono text-sm max-w-sm text-center">
-                        Select a topic from the curriculum explorer to generate content.
+                        Select a topic from the curriculum explorer to generate a lesson, or open Study Coach for an AI-driven exam-prep plan.
                       </p>
                     </div>
                   )}
@@ -164,10 +174,7 @@ function IDEContent() {
                         <p className="text-sm text-red-400 mb-2">Failed to generate content</p>
                         <p className="text-xs font-mono text-red-400/70">{loadError}</p>
                       </div>
-                      {/* <p className="text-xs text-foreground/30">Make sure your 0G account is funded and the provider is set up via the Admin panel.</p> */}
-                      <p className="text-xs text-foreground/30">There's an issue with the provider. Please try again later.</p>
-                      console.log(loadError);
-
+                      <p className="text-xs text-foreground/30">There&apos;s an issue with the provider. Please try again later.</p>
                     </div>
                   )}
 
