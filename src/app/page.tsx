@@ -81,7 +81,7 @@ export default function LandingPage() {
               </span>
             </div>
             <h2 className="text-4xl md:text-5xl font-semibold tracking-tight">
-              Curriculum-Aligned AI
+              Advanced Intelligence
             </h2>
             <p className="text-foreground/70 text-lg leading-relaxed mt-2">
               An environment that maps perfectly to your textbooks. Our AI doesn't just answer; it understands the pedagogical context of your specific curriculum.
