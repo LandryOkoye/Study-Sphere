@@ -27,6 +27,9 @@ const DEFAULT_STATE: StudyAgentState = {
   updatedAt: null,
 };
 
+const DEFAULT_DURATION_DAYS = 14;
+const DEFAULT_DAILY_MINUTES = 60;
+
 function createEmptyState(): StudyAgentState {
   return {
     ...DEFAULT_STATE,
@@ -65,24 +68,38 @@ function formatTopics(availableTopics: string[]): string {
   return availableTopics.slice(0, 30).join(", ");
 }
 
+function normalizeGoal(goal: StudyAgentGoal): Required<Pick<StudyAgentGoal, "goal" | "subject" | "durationDays" | "dailyMinutes">> &
+  Omit<StudyAgentGoal, "goal" | "subject" | "durationDays" | "dailyMinutes"> {
+  return {
+    ...goal,
+    goal: goal.goal.trim(),
+    subject: goal.subject,
+    durationDays: goal.durationDays && goal.durationDays > 0 ? goal.durationDays : DEFAULT_DURATION_DAYS,
+    dailyMinutes: goal.dailyMinutes && goal.dailyMinutes > 0 ? goal.dailyMinutes : DEFAULT_DAILY_MINUTES,
+  };
+}
+
 function buildPlanPrompt(goal: StudyAgentGoal, context: StudyAgentContext): string {
+  const normalizedGoal = normalizeGoal(goal);
   return [
     "You are a Study Coach Agent for an academic learning platform.",
     "Create a practical study plan for the student's goal.",
     "Return JSON only with this shape:",
     '{ "tasks": [{ "title": "Day 1 - Motion in a Straight Line", "topic": "Motion in a Straight Line", "day": 1, "objective": "Understand displacement, distance, speed, and velocity." }] }',
-    `Subject: ${goal.subject}`,
-    `Exam: ${goal.examType}`,
-    `Duration days: ${goal.durationDays}`,
-    `Daily minutes: ${goal.dailyMinutes}`,
-    `Confidence level: ${goal.confidenceLevel}`,
-    `Target score: ${goal.targetScore}`,
+    `Subject: ${normalizedGoal.subject}`,
+    `Student goal: ${normalizedGoal.goal}`,
+    `Goal type: ${normalizedGoal.goalType ?? "topic-mastery"}`,
+    `Duration days: ${normalizedGoal.durationDays}`,
+    `Daily minutes: ${normalizedGoal.dailyMinutes}`,
+    `Exam type: ${normalizedGoal.examType ?? "not specified"}`,
+    `Confidence level: ${normalizedGoal.confidenceLevel ?? "not specified"}`,
+    `Target score: ${normalizedGoal.targetScore ?? "not specified"}`,
     `Available topics: ${formatTopics(context.availableTopics)}`,
     "Rules:",
     "- Produce between 5 and 12 tasks.",
     "- Use only topics from the provided list when possible.",
     "- Tasks must be sequenced from foundational to advanced.",
-    "- Objectives must be concise and exam-focused.",
+    "- Objectives must be concise and aligned to the student's stated goal.",
   ].join("\n");
 }
 
@@ -108,10 +125,12 @@ function buildDecisionPrompt(state: StudyAgentState, context: StudyAgentContext)
 }
 
 function buildLessonPrompt(topic: string, goal: StudyAgentGoal): string {
+  const normalizedGoal = normalizeGoal(goal);
   return [
-    `You are an expert ${goal.subject} tutor preparing a student for ${goal.examType}.`,
+    `You are an expert ${normalizedGoal.subject} tutor.`,
+    `The student's goal is: ${normalizedGoal.goal}.`,
     `Teach the topic: ${topic}.`,
-    "Write a lesson with markdown headings and concise exam-focused explanations.",
+    "Write a lesson with markdown headings and concise explanations tailored to the student's goal.",
     "Include:",
     "- core ideas",
     "- formulas or definitions if relevant",
@@ -121,14 +140,16 @@ function buildLessonPrompt(topic: string, goal: StudyAgentGoal): string {
 }
 
 function buildQuizPrompt(topic: string, goal: StudyAgentGoal): string {
+  const normalizedGoal = normalizeGoal(goal);
   return [
-    `You are an expert ${goal.subject} tutor preparing a student for ${goal.examType}.`,
+    `You are an expert ${normalizedGoal.subject} tutor.`,
+    `The student's goal is: ${normalizedGoal.goal}.`,
     `Create a short quiz on: ${topic}.`,
     "Return JSON only with this shape:",
     '{ "topic": "Motion in a Straight Line", "questions": [{ "id": "q1", "prompt": "Question text", "answer": "Expected answer" }] }',
     "Rules:",
     "- Produce exactly 3 questions.",
-    "- Make questions short and exam-relevant.",
+    "- Make questions short and aligned to the student's goal.",
     "- Include the expected answer for each question.",
   ].join("\n");
 }
@@ -138,8 +159,10 @@ function buildGradingPrompt(
   answers: Array<{ questionId: string; response: string }>,
   goal: StudyAgentGoal
 ): string {
+  const normalizedGoal = normalizeGoal(goal);
   return [
-    `You are an expert ${goal.subject} tutor grading a short ${goal.examType} prep quiz.`,
+    `You are an expert ${normalizedGoal.subject} tutor grading a short quiz.`,
+    `The student's goal is: ${normalizedGoal.goal}.`,
     "Return JSON only with this exact shape:",
     '{ "score": 72, "feedback": "short markdown feedback", "weakTopics": ["vector resolution"], "perQuestion": [{ "questionId": "q1", "assessment": "correct" }] }',
     `Quiz: ${JSON.stringify(quiz)}`,
@@ -419,9 +442,10 @@ export async function handleStudyAgentOperation(input: {
   const state = normalizeState(input.state);
 
   if (input.operation.type === "initialize") {
+    const goal = normalizeGoal(input.operation.goal);
     const nextState = normalizeState({
       ...state,
-      goal: input.operation.goal,
+      goal,
       plan: [],
       weakTopics: [],
       lastRecommendedTopic: null,

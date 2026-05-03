@@ -66,10 +66,15 @@ export function AgentDashboard({
           <div className="flex items-start justify-between gap-4">
             <div>
               <div className="text-[10px] font-mono uppercase tracking-[0.24em] text-accent-blue">Agent Goal</div>
-              <h2 className="text-xl font-semibold mt-2">{state.goal?.subject} {state.goal?.examType} Prep</h2>
+              <h2 className="text-xl font-semibold mt-2">{state.goal?.subject} Study Plan</h2>
               <p className="text-sm text-foreground/60 mt-1">
-                {state.goal?.durationDays} days, {state.goal?.dailyMinutes} minutes per day, target {state.goal?.targetScore}%.
+                {state.goal?.durationDays ?? 14} days, {state.goal?.dailyMinutes ?? 60} minutes per day.
               </p>
+              {state.goal?.goal && (
+                <p className="text-sm text-foreground/70 mt-3 max-w-2xl">
+                  {state.goal.goal}
+                </p>
+              )}
             </div>
             <Button variant="outline" onClick={onReset} disabled={isLoading}>Reset</Button>
           </div>

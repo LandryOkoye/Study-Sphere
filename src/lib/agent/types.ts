@@ -1,12 +1,14 @@
 export type StudyTaskStatus = "pending" | "in_progress" | "completed";
 
 export type StudyAgentGoal = {
-  examType: string;
+  goal: string;
   subject: string;
-  durationDays: number;
-  dailyMinutes: number;
-  confidenceLevel: "low" | "medium" | "high";
-  targetScore: number;
+  durationDays?: number;
+  dailyMinutes?: number;
+  goalType?: "exam-prep" | "skill-building" | "topic-mastery" | "research";
+  examType?: string;
+  confidenceLevel?: "low" | "medium" | "high";
+  targetScore?: number;
 };
 
 export type StudyTask = {

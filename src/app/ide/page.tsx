@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { useCurriculum } from "@/context/CurriculumContext";
 import { MarkdownRenderer } from "@/components/ide/MarkdownRenderer";
+import { useResearchWorkspace } from "@/hooks/useResearchWorkspace";
 
 
 function IDEContent() {
@@ -28,6 +29,7 @@ function IDEContent() {
 
   // For Regular Users (mode = research)
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
+  const researchWorkspace = useResearchWorkspace(activeSectionId);
 
   const handleAutoCreateSection = async (msg: string): Promise<string> => {
     const newId = "sec-" + Date.now();
@@ -117,7 +119,17 @@ function IDEContent() {
             {isRegularMode ? (
               <main className="flex flex-col h-full overflow-hidden bg-card relative">
                 <div className="h-10 border-b border-charcoal/50 flex items-center px-4 bg-muted/50 text-xs font-mono text-foreground/40 tracking-wider justify-between">
-                  <span>workspace / {activeSectionId || "new-session"} / chat</span>
+                  <div className="flex items-center gap-3">
+                    <span>workspace / {activeSectionId || "new-session"} / chat</span>
+                    {activeSectionId && (
+                      <Link href={`/research-agent?workspace=${activeSectionId}`}>
+                        <Button size="sm" variant="outline" className="h-8 text-[10px] bg-accent-blue/10 text-accent-blue hover:bg-accent-blue/20 border-accent-blue/20 py-0 px-2 rounded-sm font-sans uppercase tracking-wider flex items-center gap-1.5">
+                          <Bot className="w-3 h-3" />
+                          Research Agent
+                        </Button>
+                      </Link>
+                    )}
+                  </div>
                 </div>
                 <div className="flex-1 overflow-hidden relative">
                   <AIChat
@@ -198,7 +210,14 @@ function IDEContent() {
           {/* Right Panel: Continuous Chat & Docs */}
           <ResizablePanel id="right" defaultSize={25} minSize={20} maxSize={40}>
             {isRegularMode ? (
-              <DocumentUpload />
+              <DocumentUpload
+                workspaceId={activeSectionId}
+                documents={researchWorkspace.documents}
+                onAutoCreateWorkspace={handleAutoCreateSection}
+                onDocumentAdded={researchWorkspace.addDocument}
+                onDocumentRemoved={researchWorkspace.removeDocument}
+                onDocumentNotesChange={researchWorkspace.updateNotes}
+              />
             ) : (
               <aside className="w-full bg-muted flex flex-col h-full relative z-10 shadow-[0_0_24px_-16px_rgba(0,0,0,0.5)]">
                 <AIChat />
